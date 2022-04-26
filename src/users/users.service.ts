@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
@@ -48,7 +48,10 @@ export class UsersService {
 
   remove(id: number) {
     const index = this.users.findIndex((user) => user.id === id);
+    if (index === -1) {
+      throw new NotFoundException(`User with id ${id} not exists`);
+    }
     this.users.splice(index, 1);
-    return `This action removes a #${id} user`;
+    return;
   }
 }
