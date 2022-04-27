@@ -1,4 +1,4 @@
-version: '3'
+version: '3.7'
 
 services:
   pgsql:
@@ -10,6 +10,7 @@ services:
     volumes:
       - pg-data:/var/lib/postgresql/data
     environment:
+      POSTGRES_DATABASE: gymsis
       POSTGRES_USER: pguser
       POSTGRES_PASSWORD: pgpassword
 
