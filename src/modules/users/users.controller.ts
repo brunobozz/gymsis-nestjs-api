@@ -27,21 +27,11 @@ export class UsersController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: number) {
-    const user = this.usersService.findOne(id);
-    if (!user) {
-      throw new NotFoundException('User does not exists.');
-    }
-    return user;
-  }
+  findOne(@Param('id') id: number) {}
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
-  }
+  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {}
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
-  }
+  remove(@Param('id') id: string) {}
 }

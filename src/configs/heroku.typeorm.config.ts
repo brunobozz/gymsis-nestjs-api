@@ -8,7 +8,7 @@ export const TypeOrmConfig: TypeOrmModuleOptions = {
   password: '12f16037088072a21915ed2274380f7f162e7a4f307da89150fdea9349691648',
   database: 'd2q3u72j43bkdi',
   autoLoadEntities: true,
-  entities: ['../**/*.entity.ts'],
+  entities: [__dirname + '/../**/*.entity{.ts,.js}'],
   synchronize: true,
   ssl: true,
   extra: {
