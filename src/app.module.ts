@@ -1,4 +1,4 @@
-import { CACHE_MANAGER, Inject, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeOrmConfig } from './configs/local.typeorm.config';
