@@ -30,4 +30,12 @@ export class CreateUserDto {
     message: 'A senha deve ter no mínimo 6 caracteres',
   })
   password: string;
+
+  @IsNotEmpty({
+    message: 'Informe a confirmação de senha',
+  })
+  @MinLength(6, {
+    message: 'A confirmação de senha deve ter no mínimo 6 caracteres',
+  })
+  passwordConfirmation: string;
 }
