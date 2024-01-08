@@ -3,7 +3,10 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+
+//MODULES
 import { ExerciseModule } from './exercise/exercise.module';
+import { CategoryModule } from './category/category.module';
 
 @Module({
   imports: [
@@ -15,6 +18,7 @@ import { ExerciseModule } from './exercise/exercise.module';
       synchronize: true,
     }),
     ExerciseModule,
+    CategoryModule,
   ],
   controllers: [AppController],
   providers: [AppService],
