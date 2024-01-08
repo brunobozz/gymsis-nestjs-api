@@ -4,28 +4,48 @@ import { UpdateExerciseDto } from './dto/update-exercise.dto';
 import { Exercise } from './entities/exercise.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeepPartial, Repository } from 'typeorm';
+import { Category } from 'src/category/entities/category.entity';
 
 @Injectable()
 export class ExerciseService {
   constructor(
     @InjectRepository(Exercise)
     private readonly exerciseRepository: Repository<Exercise>,
+    @InjectRepository(Category)
+    private readonly categoryRepository: Repository<Category>,
   ) {}
-
+  
   async create(createExerciseDto: CreateExerciseDto): Promise<Exercise> {
-    const newExercise = this.exerciseRepository.create(createExerciseDto as unknown as DeepPartial<Exercise>);
+    const { name, categoryId } = createExerciseDto;
+
+    // Encontre a categoria associada
+    const category = await this.categoryRepository.findOne({
+      where: { id: categoryId },
+    });
+
+    if (!category) {
+      throw new NotFoundException(`Category with ID ${categoryId} not found`);
+    }
+
+    // Crie o exercício associando-o à categoria
+    const newExercise = this.exerciseRepository.create({ name, category });
     return await this.exerciseRepository.save(newExercise);
   }
 
   async findAll(): Promise<Exercise[]> {
-    return this.exerciseRepository.find();
+    return this.exerciseRepository.find({ relations: ['category'] }); 
   }
 
   async findOne(id: number): Promise<Exercise> {
-    const exercise = await this.exerciseRepository.findOne({ where: { id: id } });
+    const exercise = await this.exerciseRepository.findOne({
+      where: { id: id },
+      relations: ['category'],
+    });
+
     if (!exercise) {
       throw new NotFoundException(`Exercise with ID ${id} not found`);
     }
+
     return exercise;
   }
 
