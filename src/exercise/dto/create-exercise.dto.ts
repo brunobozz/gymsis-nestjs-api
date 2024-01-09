@@ -1,11 +1,10 @@
-import { IsString, IsNotEmpty } from 'class-validator';
+import { IsString, IsNotEmpty, ArrayNotEmpty } from 'class-validator';
 
 export class CreateExerciseDto {
   @IsString()
   @IsNotEmpty()
   name: string;
 
-  @IsString()
-  @IsNotEmpty()
-  categoryId: number;
+  @ArrayNotEmpty()
+  categoryIds: number[];
 }

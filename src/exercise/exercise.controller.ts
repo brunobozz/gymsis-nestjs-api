@@ -3,7 +3,7 @@ import { ExerciseService } from './exercise.service';
 import { CreateExerciseDto } from './dto/create-exercise.dto';
 import { UpdateExerciseDto } from './dto/update-exercise.dto';
 
-@Controller('exercises')
+@Controller('exercise')
 export class ExerciseController {
   constructor(private readonly exerciseService: ExerciseService) {}
 

@@ -14,32 +14,33 @@ export class ExerciseService {
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
   ) {}
-  
-  async create(createExerciseDto: CreateExerciseDto): Promise<Exercise> {
-    const { name, categoryId } = createExerciseDto;
 
-    // Encontre a categoria associada
-    const category = await this.categoryRepository.findOne({
-      where: { id: categoryId },
+  async create(createExerciseDto: CreateExerciseDto): Promise<Exercise> {
+    const { name, categoryIds } = createExerciseDto;
+
+    // Encontre as categorias associadas
+    const categories = await this.categoryRepository.find({
+      where: categoryIds.map((id) => ({ id })),
     });
 
-    if (!category) {
-      throw new NotFoundException(`Category with ID ${categoryId} not found`);
+    if (categories.length !== categoryIds.length) {
+      // Alguma(s) categoria(s) não foi(ram) encontrada(s)
+      throw new NotFoundException(`One or more categories not found`);
     }
 
-    // Crie o exercício associando-o à categoria
-    const newExercise = this.exerciseRepository.create({ name, category });
+    // Crie o exercício associando-o às categorias
+    const newExercise = this.exerciseRepository.create({ name, categories });
     return await this.exerciseRepository.save(newExercise);
   }
 
   async findAll(): Promise<Exercise[]> {
-    return this.exerciseRepository.find({ relations: ['category'] }); 
+    return this.exerciseRepository.find({ relations: ['categories'] });
   }
 
   async findOne(id: number): Promise<Exercise> {
     const exercise = await this.exerciseRepository.findOne({
       where: { id: id },
-      relations: ['category'],
+      relations: ['categories'],
     });
 
     if (!exercise) {
@@ -51,12 +52,41 @@ export class ExerciseService {
 
   async update(id: number, updateExerciseDto: UpdateExerciseDto): Promise<Exercise> {
     const existingExercise = await this.findOne(id);
-    this.exerciseRepository.merge(existingExercise, updateExerciseDto as unknown as DeepPartial<Exercise>);
+
+    // Atualiza as propriedades simples da entidade
+    this.exerciseRepository.merge(existingExercise, updateExerciseDto as DeepPartial<Exercise>);
+
+    // Remove todas as associações many-to-many existentes
+    await this.exerciseRepository
+      .createQueryBuilder()
+      .relation(Exercise, 'categories')
+      .of(existingExercise)
+      .remove(existingExercise.categories);
+
+    // Adiciona as novas associações many-to-many
+    if (updateExerciseDto.categoryIds && updateExerciseDto.categoryIds.length > 0) {
+      const categoryIds = updateExerciseDto.categoryIds.map((id) => +id);
+      const categories = await this.exerciseRepository.manager.find(Category, {
+        where: categoryIds.map((id) => ({ id })),
+      });
+      existingExercise.categories = categories;
+    }
+    
+
+    // Salva a entidade atualizada
     return await this.exerciseRepository.save(existingExercise);
   }
 
   async remove(id: number): Promise<void> {
     const exerciseToRemove = await this.findOne(id);
+    // Remove a associação many-to-many na tabela de junção
+    await this.exerciseRepository
+      .createQueryBuilder()
+      .relation(Exercise, 'categories')
+      .of(exerciseToRemove)
+      .remove(exerciseToRemove.categories);
+
+    // Remove a entidade Exercise
     await this.exerciseRepository.remove(exerciseToRemove);
   }
 }
