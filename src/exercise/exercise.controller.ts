@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { ExerciseService } from './exercise.service';
 import { CreateExerciseDto } from './dto/create-exercise.dto';
@@ -21,9 +22,14 @@ export class ExerciseController {
   }
 
   @Get()
-  findAll(catIds?: number[], searchTerm?:string) {
-    if (catIds || catIds.length != 0) {
-      return this.exerciseService.findByParams(catIds,searchTerm);
+  findAll(
+    @Query('catIds') catIds: string,
+    @Query('searchTerm') searchTerm: string,
+  ) {
+    const catIdsArray = catIds ? catIds.split(',').map(Number) : [];
+
+    if (catIds || searchTerm != undefined) {
+      return this.exerciseService.findByParams(catIdsArray, searchTerm);
     }
 
     return this.exerciseService.findAll();

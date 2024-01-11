@@ -3,7 +3,7 @@ import { CreateExerciseDto } from './dto/create-exercise.dto';
 import { UpdateExerciseDto } from './dto/update-exercise.dto';
 import { Exercise } from './entities/exercise.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeepPartial, Repository } from 'typeorm';
+import { DeepPartial, Like, Repository } from 'typeorm';
 import { Category } from 'src/category/entities/category.entity';
 
 @Injectable()
@@ -37,19 +37,25 @@ export class ExerciseService {
     return this.exerciseRepository.find({ relations: ['categories'] });
   }
 
-  async findByParams(
-    catIds?: number[],
-    searchTerm?: string,
-  ): Promise<Exercise> {
-    const exercise = await this.exerciseRepository.findOne({
-      where: { categories: catIds.map(id => id)},
-      relations: ['categories'],
-    });
-    if (!exercise) {
-      throw new NotFoundException(`Exercise with ID not found`);
+  async findByParams(catIds?: any, searchTerm?: string): Promise<Exercise[]> {
+    const query: any = {};
+
+    if (catIds) {
+      // Filtrar por categorias se catIds estiver presente
+      query.categories = catIds.map((id: any) => ({ id }));
     }
 
-    return exercise;
+    if (searchTerm) {
+      // Filtrar por nome se searchTerm estiver presente
+      query.name = Like(`%${searchTerm}%`);
+    }
+
+    const exercises = await this.exerciseRepository.find({
+      where: query,
+      relations: ['categories'],
+    });
+
+    return exercises;
   }
 
   async findOne(id: number): Promise<Exercise> {
