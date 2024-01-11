@@ -37,6 +37,21 @@ export class ExerciseService {
     return this.exerciseRepository.find({ relations: ['categories'] });
   }
 
+  async findByParams(
+    catIds?: number[],
+    searchTerm?: string,
+  ): Promise<Exercise> {
+    const exercise = await this.exerciseRepository.findOne({
+      where: { categories: catIds.map(id => id)},
+      relations: ['categories'],
+    });
+    if (!exercise) {
+      throw new NotFoundException(`Exercise with ID not found`);
+    }
+
+    return exercise;
+  }
+
   async findOne(id: number): Promise<Exercise> {
     const exercise = await this.exerciseRepository.findOne({
       where: { id: id },
@@ -50,11 +65,17 @@ export class ExerciseService {
     return exercise;
   }
 
-  async update(id: number, updateExerciseDto: UpdateExerciseDto): Promise<Exercise> {
+  async update(
+    id: number,
+    updateExerciseDto: UpdateExerciseDto,
+  ): Promise<Exercise> {
     const existingExercise = await this.findOne(id);
 
     // Atualiza as propriedades simples da entidade
-    this.exerciseRepository.merge(existingExercise, updateExerciseDto as DeepPartial<Exercise>);
+    this.exerciseRepository.merge(
+      existingExercise,
+      updateExerciseDto as DeepPartial<Exercise>,
+    );
 
     // Remove todas as associações many-to-many existentes
     await this.exerciseRepository
@@ -64,14 +85,16 @@ export class ExerciseService {
       .remove(existingExercise.categories);
 
     // Adiciona as novas associações many-to-many
-    if (updateExerciseDto.categoryIds && updateExerciseDto.categoryIds.length > 0) {
+    if (
+      updateExerciseDto.categoryIds &&
+      updateExerciseDto.categoryIds.length > 0
+    ) {
       const categoryIds = updateExerciseDto.categoryIds.map((id) => +id);
       const categories = await this.exerciseRepository.manager.find(Category, {
         where: categoryIds.map((id) => ({ id })),
       });
       existingExercise.categories = categories;
     }
-    
 
     // Salva a entidade atualizada
     return await this.exerciseRepository.save(existingExercise);
